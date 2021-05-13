@@ -45,7 +45,6 @@ export class QuarComponent implements OnInit, OnDestroy {
     }
 
     resumeScanner(): void {
-        console.log('Restart was called');
         this.quarService.resumeScanner();
     }
 
