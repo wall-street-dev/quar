@@ -1,47 +1,92 @@
 import { Injectable } from '@angular/core';
-import jsQR, { Options, QRCode } from 'jsqr';
+import jsQR, { Options } from 'jsqr';
 import { QuarErrors } from './quar-errors';
+import {
+    animationFrameScheduler,
+    BehaviorSubject,
+    from,
+    interval,
+    Observable,
+    Subject
+} from 'rxjs';
+import { auditTime, filter, finalize, map, switchMap, take, takeUntil } from 'rxjs/operators';
+import { CameraStream } from './CameraStream';
 
 @Injectable()
 export class QuarService {
-
     private videoConstraints: MediaStreamConstraints = {
-        video: true,
+        video: { facingMode: 'environment' },
         audio: false
     };
     private defaultOption: Options = { inversionAttempts: 'attemptBoth' };
-    private timerCapture!: number| null;
-    private canvasElem!: HTMLCanvasElement;
-    private gCtx!: CanvasRenderingContext2D;
-    private stream!: MediaStream | null;
-    private videoElem!: HTMLVideoElement;
+    private continue$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
+    destroy$ = new Subject();
 
     constructor() {}
 
-    isDeviceCapable(): boolean {
-       return this.isCanvasSupported() && this.isMediaSupported();
+    capture$(videoElement: HTMLVideoElement, options: Options = {}): Observable<string> {
+        const opts: Options = {
+            ...this.defaultOption,
+            ...options
+        };
+
+        if (!navigator.mediaDevices.getUserMedia) {
+            throw new Error(QuarErrors.notSupported);
+        }
+        return from(navigator.mediaDevices.getUserMedia(this.videoConstraints)).pipe(
+            map((stream: MediaStream): CameraStream => new CameraStream(videoElement, stream)),
+            switchMap((cameraStream: CameraStream) => {
+                return interval(0, animationFrameScheduler).pipe(
+                    auditTime(300),
+                    switchMap(() => this.continue$),
+                    filter(Boolean),
+                    map(() => this.decode(cameraStream, opts)),
+                    finalize(() => cameraStream.stop())
+                );
+            }),
+            filter((code: string) => !!code),
+            takeUntil(this.destroy$)
+        );
     }
 
-    stop(): QuarService {
-        if (this.stream) {
-            const track = this.stream.getTracks()[0];
-            track.stop();
-            this.stream = null;
-            this.videoElem.srcObject = null;
+    private decode(cameraStream: CameraStream, options: Options = {}): string {
+        if (cameraStream.isVideoReady()) {
+            const imageData: ImageData = cameraStream.getImageData();
+            const code = jsQR(imageData.data, imageData.width, imageData.height, options);
+            if (code) {
+                return code.data;
+            }
         }
+        return '';
+    }
 
-        if (this.timerCapture) {
-            clearTimeout(this.timerCapture);
-            this.timerCapture = null;
-        }
+    toggle(): void {
+        this.continue$.pipe(take(1)).subscribe((status: boolean) => {
+            this.continue$.next(!status);
+        });
+    }
 
-        return this;
+    pauseScanner(): void {
+        this.continue$.next(false);
+    }
+
+    resumeScanner(): void {
+        this.continue$.next(true);
+    }
+
+    isDeviceCapable(): boolean {
+        return this.isCanvasSupported() && this.isMediaSupported();
+    }
+
+    destroyScanner(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
     }
 
     async requestPermissions(): Promise<boolean> {
         if (this.isDeviceCapable()) {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: false});
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                 const track = stream.getTracks()[0];
                 track.stop();
                 return Promise.resolve(true);
@@ -62,29 +107,6 @@ export class QuarService {
         }
     }
 
-    async decodeFromCamera(videoElem: HTMLVideoElement, options = {}): Promise<QRCode> {
-        const opts = {
-            ...this.defaultOption,
-            ...options
-        };
-
-        this.stop();
-        if (!navigator.mediaDevices.getUserMedia) {
-            throw new Error(QuarErrors.notSupported);
-        }
-
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia(this.videoConstraints);
-            videoElem.srcObject = stream;
-            this.videoElem = videoElem;
-            this.stream = stream;
-
-            return await this.decodeFromVideo(videoElem, opts);
-        } catch (e) {
-            throw new Error(QuarErrors.noPermissions);
-        }
-    }
-
     private isCanvasSupported(): boolean {
         const elem = document.createElement('canvas');
         return !!(elem.getContext && elem.getContext('2d'));
@@ -93,82 +115,4 @@ export class QuarService {
     private isMediaSupported(): boolean {
         return navigator.mediaDevices && !!navigator.mediaDevices.getUserMedia;
     }
-
-    private _createImageData(target: CanvasImageSource, width: number, height: number): ImageData {
-        if (!this.canvasElem) {
-            this._prepareCanvas(width, height);
-        }
-
-        this.gCtx.clearRect(0, 0, width, height);
-        this.gCtx.drawImage(target, 0, 0, width, height);
-
-        return this.gCtx.getImageData(
-            0,
-            0,
-            this.canvasElem.width,
-            this.canvasElem.height
-        );
-    }
-
-    private _prepareCanvas(width: number, height: number): void {
-        if (!this.canvasElem) {
-            this.canvasElem = document.createElement('canvas');
-            this.canvasElem.style.width = `${width}px`;
-            this.canvasElem.style.height = `${height}px`;
-            this.canvasElem.width = width;
-            this.canvasElem.height = height;
-        }
-
-        this.gCtx = this.canvasElem.getContext('2d') as CanvasRenderingContext2D;
-    }
-
-    private async _captureToCanvas(videoElem: HTMLVideoElement, options: Options): Promise<QRCode> {
-        if (this.timerCapture) {
-            clearTimeout(this.timerCapture);
-        }
-        const proms = () => {
-            return new Promise<QRCode>(async (resolve) => {
-                let code;
-                if (videoElem.videoWidth && videoElem.videoHeight) {
-                    const imageData = this._createImageData(
-                        videoElem,
-                        videoElem.videoWidth,
-                        videoElem.videoHeight
-                    );
-
-                    code = jsQR(imageData.data, imageData.width, imageData.height, options);
-
-                    if (code && code.data) {
-                        resolve(code);
-                    } else {
-                        this.timerCapture = setTimeout(async () => {
-                            code = await this._captureToCanvas(videoElem, options);
-                            resolve(code);
-                        }, 500);
-                    }
-                } else {
-                    this.timerCapture = setTimeout(async () => {
-                        code = await this._captureToCanvas(videoElem, options);
-                        resolve(code);
-                    }, 500);
-                }
-            });
-        };
-
-        return await proms();
-    }
-
-    private async decodeFromVideo(videoElem: HTMLVideoElement, options = {}): Promise<QRCode> {
-        const opts = {
-            ...this.defaultOption,
-            ...options
-        };
-        try {
-            this.videoElem = videoElem;
-            return await this._captureToCanvas(videoElem, opts);
-        } catch (e) {
-            throw new Error(QuarErrors.noPermissions);
-        }
-    }
-
 }
