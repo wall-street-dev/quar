@@ -16,7 +16,7 @@ import { QuarService } from './quar.service';
 @Component({
     selector: 'quar-scanner',
     template: ` <video #video autoplay muted playsinline style="width: 100%; height: 100%"></video> `,
-    styles: []
+    styleUrls: ['./quar.component.scss']
 })
 export class QuarComponent implements OnInit, OnDestroy {
     @ViewChild('video') video!: ElementRef;
