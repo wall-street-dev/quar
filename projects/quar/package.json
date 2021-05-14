@@ -1,6 +1,6 @@
 {
   "name": "@altack/quar",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A simple Angular QR Code scanner that just works.",
   "keywords": [
     "qr scanner",
@@ -10,11 +10,15 @@
     "aot"
   ],
   "repository": {
-    "url": "https://github.com/guzmanoj/quar/tree/main/projects/quar"
+    "url": "https://github.com/guzmanoj/quar"
   },
   "peerDependencies": {
     "@angular/common": "^11.2.13",
-    "@angular/core": "^11.2.13"
+    "@angular/core": "^11.2.13",
+    "rxjs": "^6.5.5"
+  },
+  "devDependencies": {
+    "rxjs": "^6.5.5"
   },
   "dependencies": {
     "tslib": "^2.0.0",

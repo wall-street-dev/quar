@@ -41,6 +41,5 @@ export class CameraStream {
 
     constructor(public videoElem: HTMLVideoElement, public stream: MediaStream | null) {
         this.videoElem.srcObject = stream;
-        console.log('New CameraStream instance');
     }
 }
