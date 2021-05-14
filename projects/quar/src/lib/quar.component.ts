@@ -27,6 +27,7 @@ export class QuarComponent implements OnInit, OnDestroy {
     constructor(private quarService: QuarService) {}
 
     ngOnInit(): void {
+        this.resumeScanner();
         from(this.quarService.requestPermissions())
             .pipe(
                 filter(Boolean),

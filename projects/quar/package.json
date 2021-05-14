@@ -1,6 +1,6 @@
 {
   "name": "@altack/quar",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "A simple Angular QR Code scanner that just works.",
   "keywords": [
     "qr scanner",
