@@ -24,4 +24,7 @@ A simple Angular QR Code scanner that just works.
   }`
 
 - `(scanError)` will emit in case the browser doesn't support WebRTC APIs, or it lacks of user permissions.
-   Values are part of the `QuarErrors` *Enum*, and the possible values are `noPermissions`, `notSupported` or `unknownError`.
+   Values are part of the `QuarErrors` *Enum*, and the possible values are `noPermissions`, `notSupported` or `unknownError`.  
+
+#### Angular Compatibility
+If you're using Angular 13 make sure to update Quar dependency to v1.3.x
