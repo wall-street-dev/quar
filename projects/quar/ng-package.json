@@ -5,9 +5,6 @@
     "jsqr"
   ],
   "lib": {
-    "entryFile": "src/public-api.ts",
-    "umdModuleIds": {
-      "jsqr": "jsQR"
-    }
+    "entryFile": "src/public-api.ts"
   }
 }
