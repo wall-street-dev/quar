@@ -12,7 +12,7 @@ import {
 import { auditTime, filter, finalize, map, switchMap, take, takeUntil } from 'rxjs/operators';
 import { CameraStream } from './CameraStream';
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class QuarService {
     private videoConstraints: MediaStreamConstraints = {
         video: { facingMode: 'environment' },

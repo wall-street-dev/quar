@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { QuarComponent } from './quar.component';
 import { CommonModule } from '@angular/common';
-import { QuarService } from './quar.service';
 
 
 
@@ -9,7 +8,6 @@ import { QuarService } from './quar.service';
   declarations: [
     QuarComponent
   ],
-  providers: [QuarService],
   imports: [
     CommonModule
   ],
