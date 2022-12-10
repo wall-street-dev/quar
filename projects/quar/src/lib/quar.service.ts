@@ -19,10 +19,8 @@ export class QuarService {
         audio: false
     };
     private defaultOption: Options = { inversionAttempts: 'attemptBoth' };
-    private continue$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
-    destroy$ = new Subject();
-
-    constructor() {}
+    private readonly continue$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
+    private readonly destroy$ = new Subject<void>();
 
     capture$(videoElement: HTMLVideoElement, options: Options = {}): Observable<string> {
         const opts: Options = {
