@@ -23,8 +23,8 @@ export class QuarComponent implements OnInit, OnDestroy {
     @ViewChild('video') video!: ElementRef;
     @Output() scanSuccess: EventEmitter<string> = new EventEmitter<string>();
     @Output() scanError: EventEmitter<QuarErrors> = new EventEmitter<QuarErrors>();
-    private destroy$: Subject<any> = new Subject<any>();
-    constructor(private quarService: QuarService) {}
+    private readonly destroy$ = new Subject<void>();
+    constructor(private readonly quarService: QuarService) {}
 
     ngOnInit(): void {
         this.resumeScanner();
@@ -34,15 +34,15 @@ export class QuarComponent implements OnInit, OnDestroy {
                 switchMap(() => this.quarService.capture$(this.video.nativeElement)),
                 takeUntil(this.destroy$)
             )
-            .subscribe(
-                (result: string) => {
+            .subscribe({
+                next: (result: string) => {
                     this.scanSuccess.emit(result);
                     this.pauseScanner();
                 },
-                (error: QuarErrors) => {
+                error: (error: QuarErrors) => {
                     this.scanError.emit(error);
                 }
-            );
+            });
     }
 
     resumeScanner(): void {
