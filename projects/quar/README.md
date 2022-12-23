@@ -5,7 +5,7 @@ A simple Angular QR Code scanner that just works.
 1. Install the package  
     `npm i @altack/quar`  
     
-     It will automatically add [jsQR](https://github.com/cozmo/jsQR) as a dependency.  
+     Make sure to also install [jsQR](https://github.com/cozmo/jsQR) as a dependency. 
      *jsQR* is used to decode the video stream captured by the user's camera until a match is found.
 
 2. Import the `QuarModule` in your `AppModule` (or any other module).
@@ -27,4 +27,4 @@ A simple Angular QR Code scanner that just works.
    Values are part of the `QuarErrors` *Enum*, and the possible values are `noPermissions`, `notSupported` or `unknownError`.  
 
 #### Angular Compatibility
-If you're using Angular 13 make sure to update Quar dependency to v1.3.x
+If you're using Angular 15 make sure to update Quar package to v1.5.x

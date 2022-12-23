@@ -23,7 +23,7 @@ export class QuarComponent implements OnInit, OnDestroy {
     @ViewChild('video') video!: ElementRef;
     @Output() scanSuccess: EventEmitter<string> = new EventEmitter<string>();
     @Output() scanError: EventEmitter<QuarErrors> = new EventEmitter<QuarErrors>();
-    private destroy$: Subject<any> = new Subject<any>();
+    private destroy$ = new Subject<void>();
     constructor(private quarService: QuarService) {}
 
     ngOnInit(): void {

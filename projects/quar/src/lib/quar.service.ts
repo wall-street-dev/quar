@@ -20,7 +20,7 @@ export class QuarService {
     };
     private defaultOption: Options = { inversionAttempts: 'attemptBoth' };
     private continue$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
-    destroy$ = new Subject();
+    private destroy$ = new Subject<void>();
 
     constructor() {}
 

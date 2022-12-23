@@ -7,7 +7,7 @@
       "projectType": "library",
       "root": "projects/quar",
       "sourceRoot": "projects/quar/src",
-      "prefix": "quar",
+      "prefix": "lib",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
@@ -27,13 +27,14 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "projects/quar/src/test.ts",
             "tsConfig": "projects/quar/tsconfig.spec.json",
-            "karmaConfig": "projects/quar/karma.conf.js"
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
           }
         }
       }
     }
-  },
-  "defaultProject": "quar"
+  }
 }
